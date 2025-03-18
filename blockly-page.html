@@ -5,29 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Blockly Editor</title>
   
-  <!-- 引入 Blockly 库 -->
-  	<script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
-  	<script src="https://unpkg.com/blockly/blocks_compressed.js"></script>  <!-- 确保 block 代码加载 -->
-  	<script src="https://unpkg.com/blockly/javascript_compressed.js"></script> <!-- 确保 JS 代码生成器加载 -->
-  
-  
+  <script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
+  <script src="https://unpkg.com/blockly/blocks_compressed.js"></script>
+  <script src="https://unpkg.com/blockly/javascript_compressed.js"></script>
+
   <style>
-    /* 让 Blockly 填充整个屏幕 */
     html, body {
       height: 100%;
       margin: 0;
-      overflow: hidden; /* 禁止页面滚动 */
-      touch-action: none; /* 避免误触 */
+      overflow: hidden;
+      touch-action: none;
       -webkit-user-select: none;
       -webkit-touch-callout: none;
     }
 
     #blocklyDiv {
       width: 100%;
-      height: calc(100% - 60px); /* 预留底部按钮 */
+      height: calc(100% - 60px);
     }
 
-    /* 移动端优化按钮样式 */
     #generateCodeBtn {
       position: fixed;
       bottom: 10px;
@@ -47,74 +43,125 @@
     #generateCodeBtn:active {
       background-color: #005ecb;
     }
+
+    #codeModal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 15px;
+      width: 90%;
+      max-width: 500px;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .modal-content pre {
+      text-align: left;
+      background: #f4f4f4;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+      max-height: 200px;
+    }
+
+    .button-group {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .modal-btn {
+      background: #007aff;
+      color: white;
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      flex: 1;
+      margin: 0 5px;
+    }
+
+    .modal-btn:active {
+      background: #005ecb;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Blockly 工作区 -->
   <div id="blocklyDiv"></div>
-
-  <!-- 代码生成按钮 -->
   <button id="generateCodeBtn" onclick="generateCode()">生成代码</button>
 
+  <div id="codeModal">
+    <div class="modal-content">
+      <h3>生成的代码</h3>
+      <pre id="codeContent"></pre>
+      <div class="button-group">
+        <button class="modal-btn" onclick="copyCode()">复制</button>
+        <button class="modal-btn" onclick="closeModal()">关闭</button>
+      </div>
+    </div>
+  </div>
+
   <!-- 工具箱 -->
-  <xml id="toolbox" style="display: none">
-    <category name="逻辑" categorystyle="logic_category">
-      <block type="controls_if"></block>
-      <block type="logic_compare"></block>
-      <block type="logic_operation"></block>
-      <block type="logic_negate"></block>
-      <block type="logic_boolean"></block>
-    </category>
-    <category name="循环" categorystyle="loop_category">
-      <block type="controls_repeat_ext"></block>
-      <block type="controls_whileUntil"></block>
-      <block type="controls_for"></block>
-      <block type="controls_flow_statements"></block>
-    </category>
-    <category name="数学" categorystyle="math_category">
-      <block type="math_number"></block>
-      <block type="math_arithmetic"></block>
-      <block type="math_single"></block>
-      <block type="math_trig"></block>
-      <block type="math_round"></block>
-      <block type="math_random_int"></block>
-    </category>
-    <category name="文本" categorystyle="text_category">
-      <block type="text"></block>
-      <block type="text_length"></block>
-      <block type="text_print"></block>
-      <block type="text_join"></block>
-    </category>
-    <category name="列表" categorystyle="list_category">
-      <block type="lists_create_with"></block>
-      <block type="lists_repeat"></block>
-      <block type="lists_length"></block>
-      <block type="lists_isEmpty"></block>
-      <block type="lists_indexOf"></block>
-    </category>
-    <category name="变量" categorystyle="variable_category" custom="VARIABLE"></category>
-    <category name="功能" categorystyle="procedure_category" custom="PROCEDURE"></category>
-  </xml>
+   <xml id="toolbox" style="display: none">
+     <category name="逻辑" categorystyle="logic_category">
+       <block type="controls_if"></block>
+       <block type="logic_compare"></block>
+       <block type="logic_operation"></block>
+       <block type="logic_negate"></block>
+       <block type="logic_boolean"></block>
+     </category>
+     <category name="循环" categorystyle="loop_category">
+       <block type="controls_repeat_ext"></block>
+       <block type="controls_whileUntil"></block>
+       <block type="controls_for"></block>
+       <block type="controls_flow_statements"></block>
+     </category>
+     <category name="数学" categorystyle="math_category">
+       <block type="math_number"></block>
+       <block type="math_arithmetic"></block>
+       <block type="math_single"></block>
+       <block type="math_trig"></block>
+       <block type="math_round"></block>
+       <block type="math_random_int"></block>
+     </category>
+     <category name="文本" categorystyle="text_category">
+       <block type="text"></block>
+       <block type="text_length"></block>
+       <block type="text_print"></block>
+       <block type="text_join"></block>
+     </category>
+     <category name="列表" categorystyle="list_category">
+       <block type="lists_create_with"></block>
+       <block type="lists_repeat"></block>
+       <block type="lists_length"></block>
+       <block type="lists_isEmpty"></block>
+       <block type="lists_indexOf"></block>
+     </category>
+     <category name="变量" categorystyle="variable_category" custom="VARIABLE"></category>
+     <category name="功能" categorystyle="procedure_category" custom="PROCEDURE"></category>
+   </xml>
 
   <script>
-    // 确保 Blockly 语言包加载后再初始化
     function initBlockly() {
-      console.log("Blockly 初始化");
-
-      // 设置 Blockly 的本地语言
-      if (Blockly.ZhHans) {
-        Object.assign(Blockly.Msg, Blockly.ZhHans);
-      }
-
-      // 初始化 Blockly
-      const workspace = Blockly.inject('blocklyDiv', {
+      window.blocklyWorkspace = Blockly.inject('blocklyDiv', {
         toolbox: document.getElementById('toolbox'),
         scrollbars: true,
         trashcan: true,
         zoom: {
           controls: true,
-          wheel: true,  // 允许双指缩放
+          wheel: true,
           startScale: 1.0,
           maxScale: 2,
           minScale: 0.5,
@@ -126,25 +173,29 @@
           wheel: true
         }
       });
-
-      window.blocklyWorkspace = workspace;
     }
 
-    // 代码生成 & 发送到微信小程序
     function generateCode() {
       const code = Blockly.JavaScript.workspaceToCode(window.blocklyWorkspace);
-      
-      // 发送代码到微信小程序
-      if (typeof wx !== 'undefined' && wx.miniProgram) {
-        wx.miniProgram.postMessage({ data: code });
-      }
-      
-      console.log("生成的代码:", code);
+      document.getElementById("codeContent").innerText = code;
+      document.getElementById("codeModal").style.display = "flex";
+    }
+
+    function closeModal() {
+      document.getElementById("codeModal").style.display = "none";
+    }
+
+    function copyCode() {
+      const codeElement = document.getElementById("codeContent");
+      if (!codeElement) return;
+      navigator.clipboard.writeText(codeElement.innerText).then(() => {
+        alert("代码已复制！");
+      }).catch(err => {
+        console.error("复制失败: ", err);
+      });
     }
   </script>
-  
-  <!-- 确保 Blockly 资源加载顺序正确 -->
-    <script src="https://unpkg.com/blockly/msg/zh-hans.js" onload="initBlockly()"></script>
 
+  <script src="https://unpkg.com/blockly/msg/zh-hans.js" onload="initBlockly()"></script>
 </body>
 </html>
