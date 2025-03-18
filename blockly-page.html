@@ -6,9 +6,11 @@
   <title>Blockly Editor</title>
   
   <!-- 引入 Blockly 库 -->
-  <script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
-  <script src="https://unpkg.com/blockly/msg/zh-hans.js"></script>
-
+  	<script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
+  	<script src="https://unpkg.com/blockly/blocks_compressed.js"></script>  <!-- 确保 block 代码加载 -->
+  	<script src="https://unpkg.com/blockly/javascript_compressed.js"></script> <!-- 确保 JS 代码生成器加载 -->
+  
+  
   <style>
     /* 让 Blockly 填充整个屏幕 */
     html, body {
@@ -140,9 +142,9 @@
       console.log("生成的代码:", code);
     }
   </script>
-
+  
   <!-- 确保 Blockly 资源加载顺序正确 -->
-  <script src="https://unpkg.com/blockly/msg/zh-hans.js" onload="initBlockly()"></script>
+    <script src="https://unpkg.com/blockly/msg/zh-hans.js" onload="initBlockly()"></script>
 
 </body>
 </html>
