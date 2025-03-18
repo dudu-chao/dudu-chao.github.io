@@ -9,7 +9,7 @@ export default {
   data() {
     return {
       // 设置为实际部署的Blockly网页URL
-      webUrl: 'https://yourdomain.com/blockly-page.html'
+      webUrl: ' https://dudu-chao.github.io/blockly-page.html'
     }
   },
   methods: {
