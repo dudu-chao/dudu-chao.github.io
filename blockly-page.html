@@ -2,19 +2,60 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Blockly Editor</title>
+  
   <!-- 引入 Blockly 库 -->
-  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <script src="https://unpkg.com/blockly/blockly_compressed.js"></script>
   <script src="https://unpkg.com/blockly/msg/zh-hans.js"></script>
+
   <style>
-    html, body { height: 100%; margin: 0; }
-    #blocklyDiv { width: 100%; height: 100%; }
+    /* 让 Blockly 填充整个屏幕 */
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden; /* 禁止页面滚动 */
+      touch-action: none; /* 避免误触 */
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    #blocklyDiv {
+      width: 100%;
+      height: calc(100% - 60px); /* 预留底部按钮 */
+    }
+
+    /* 移动端优化按钮样式 */
+    #generateCodeBtn {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 90%;
+      padding: 12px;
+      background-color: #007aff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      text-align: center;
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    #generateCodeBtn:active {
+      background-color: #005ecb;
+    }
   </style>
 </head>
 <body>
-  <!-- Blockly 工作区容器 -->
+
+  <!-- Blockly 工作区 -->
   <div id="blocklyDiv"></div>
-  <!-- 工具箱定义 -->
+
+  <!-- 代码生成按钮 -->
+  <button id="generateCodeBtn" onclick="generateCode()">生成代码</button>
+
+  <!-- 工具箱 -->
   <xml id="toolbox" style="display: none">
     <category name="逻辑" categorystyle="logic_category">
       <block type="controls_if"></block>
@@ -26,34 +67,82 @@
     <category name="循环" categorystyle="loop_category">
       <block type="controls_repeat_ext"></block>
       <block type="controls_whileUntil"></block>
+      <block type="controls_for"></block>
+      <block type="controls_flow_statements"></block>
     </category>
     <category name="数学" categorystyle="math_category">
       <block type="math_number"></block>
       <block type="math_arithmetic"></block>
+      <block type="math_single"></block>
+      <block type="math_trig"></block>
+      <block type="math_round"></block>
+      <block type="math_random_int"></block>
     </category>
-    <!-- 可继续添加文本、列表、变量等类别 -->
+    <category name="文本" categorystyle="text_category">
+      <block type="text"></block>
+      <block type="text_length"></block>
+      <block type="text_print"></block>
+      <block type="text_join"></block>
+    </category>
+    <category name="列表" categorystyle="list_category">
+      <block type="lists_create_with"></block>
+      <block type="lists_repeat"></block>
+      <block type="lists_length"></block>
+      <block type="lists_isEmpty"></block>
+      <block type="lists_indexOf"></block>
+    </category>
+    <category name="变量" categorystyle="variable_category" custom="VARIABLE"></category>
+    <category name="功能" categorystyle="procedure_category" custom="PROCEDURE"></category>
   </xml>
-  <script>
-    // 初始化 Blockly 工作区
-    const workspace = Blockly.inject('blocklyDiv', {
-      toolbox: document.getElementById('toolbox')
-    });
-    // 将Blockly语言默认设置为中文
-    Blockly.setLocale(Blockly.ZhHans);
 
-    // 定义一个函数获取当前工作区的JS代码，并通过postMessage发送给小程序
+  <script>
+    // 确保 Blockly 语言包加载后再初始化
+    function initBlockly() {
+      console.log("Blockly 初始化");
+
+      // 设置 Blockly 的本地语言
+      if (Blockly.ZhHans) {
+        Object.assign(Blockly.Msg, Blockly.ZhHans);
+      }
+
+      // 初始化 Blockly
+      const workspace = Blockly.inject('blocklyDiv', {
+        toolbox: document.getElementById('toolbox'),
+        scrollbars: true,
+        trashcan: true,
+        zoom: {
+          controls: true,
+          wheel: true,  // 允许双指缩放
+          startScale: 1.0,
+          maxScale: 2,
+          minScale: 0.5,
+          scaleSpeed: 1.2
+        },
+        move: {
+          scrollbars: true,
+          drag: true,
+          wheel: true
+        }
+      });
+
+      window.blocklyWorkspace = workspace;
+    }
+
+    // 代码生成 & 发送到微信小程序
     function generateCode() {
-      const code = Blockly.JavaScript.workspaceToCode(workspace);
-      // 通过 Weixin JSBridge 接口将代码发送回小程序
+      const code = Blockly.JavaScript.workspaceToCode(window.blocklyWorkspace);
+      
+      // 发送代码到微信小程序
       if (typeof wx !== 'undefined' && wx.miniProgram) {
         wx.miniProgram.postMessage({ data: code });
       }
-      alert("生成的代码:\\n" + code);
+      
+      console.log("生成的代码:", code);
     }
   </script>
-  <!-- 添加一个按钮来生成代码 -->
-  <button style="position: fixed; top: 10px; right: 10px; z-index: 999;" onclick="generateCode()">
-    生成代码
-  </button>
+
+  <!-- 确保 Blockly 资源加载顺序正确 -->
+  <script src="https://unpkg.com/blockly/msg/zh-hans.js" onload="initBlockly()"></script>
+
 </body>
 </html>
