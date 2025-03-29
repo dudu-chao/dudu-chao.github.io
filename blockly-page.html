@@ -95,6 +95,18 @@
     .modal-btn:active {
       background: #005ecb;
     }
+
+    #outputArea {
+      background: #f4f4f4;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 5px;
+      text-align: left;
+      font-family: monospace;
+      max-height: 150px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
@@ -106,6 +118,8 @@
     <div class="modal-content">
       <h3>生成的代码</h3>
       <pre id="codeContent"></pre>
+      <h3>运行结果</h3>
+      <pre id="outputArea">点击运行后会在此显示输出</pre>
       <div class="button-group">
         <button class="modal-btn" onclick="copyCode()">复制</button>
         <button class="modal-btn" onclick="closeModal()">关闭</button>
@@ -114,44 +128,44 @@
   </div>
 
   <!-- 工具箱 -->
-   <xml id="toolbox" style="display: none">
-     <category name="逻辑" categorystyle="logic_category">
-       <block type="controls_if"></block>
-       <block type="logic_compare"></block>
-       <block type="logic_operation"></block>
-       <block type="logic_negate"></block>
-       <block type="logic_boolean"></block>
-     </category>
-     <category name="循环" categorystyle="loop_category">
-       <block type="controls_repeat_ext"></block>
-       <block type="controls_whileUntil"></block>
-       <block type="controls_for"></block>
-       <block type="controls_flow_statements"></block>
-     </category>
-     <category name="数学" categorystyle="math_category">
-       <block type="math_number"></block>
-       <block type="math_arithmetic"></block>
-       <block type="math_single"></block>
-       <block type="math_trig"></block>
-       <block type="math_round"></block>
-       <block type="math_random_int"></block>
-     </category>
-     <category name="文本" categorystyle="text_category">
-       <block type="text"></block>
-       <block type="text_length"></block>
-       <block type="text_print"></block>
-       <block type="text_join"></block>
-     </category>
-     <category name="列表" categorystyle="list_category">
-       <block type="lists_create_with"></block>
-       <block type="lists_repeat"></block>
-       <block type="lists_length"></block>
-       <block type="lists_isEmpty"></block>
-       <block type="lists_indexOf"></block>
-     </category>
-     <category name="变量" categorystyle="variable_category" custom="VARIABLE"></category>
-     <category name="功能" categorystyle="procedure_category" custom="PROCEDURE"></category>
-   </xml>
+  <xml id="toolbox" style="display: none">
+    <category name="逻辑" categorystyle="logic_category">
+      <block type="controls_if"></block>
+      <block type="logic_compare"></block>
+      <block type="logic_operation"></block>
+      <block type="logic_negate"></block>
+      <block type="logic_boolean"></block>
+    </category>
+    <category name="循环" categorystyle="loop_category">
+      <block type="controls_repeat_ext"></block>
+      <block type="controls_whileUntil"></block>
+      <block type="controls_for"></block>
+      <block type="controls_flow_statements"></block>
+    </category>
+    <category name="数学" categorystyle="math_category">
+      <block type="math_number"></block>
+      <block type="math_arithmetic"></block>
+      <block type="math_single"></block>
+      <block type="math_trig"></block>
+      <block type="math_round"></block>
+      <block type="math_random_int"></block>
+    </category>
+    <category name="文本" categorystyle="text_category">
+      <block type="text"></block>
+      <block type="text_length"></block>
+      <block type="text_print"></block>
+      <block type="text_join"></block>
+    </category>
+    <category name="列表" categorystyle="list_category">
+      <block type="lists_create_with"></block>
+      <block type="lists_repeat"></block>
+      <block type="lists_length"></block>
+      <block type="lists_isEmpty"></block>
+      <block type="lists_indexOf"></block>
+    </category>
+    <category name="变量" categorystyle="variable_category" custom="VARIABLE"></category>
+    <category name="功能" categorystyle="procedure_category" custom="PROCEDURE"></category>
+  </xml>
 
   <script>
     function initBlockly() {
@@ -179,6 +193,28 @@
       const code = Blockly.JavaScript.workspaceToCode(window.blocklyWorkspace);
       document.getElementById("codeContent").innerText = code;
       document.getElementById("codeModal").style.display = "flex";
+
+      // 捕获 console.log 输出
+      const outputElement = document.getElementById("outputArea");
+      let output = '';
+      const originalLog = console.log;
+
+      console.log = function (...args) {
+        output += args.join(' ') + '\n';
+        originalLog.apply(console, args);
+      };
+
+      try {
+        const result = eval(code);
+        if (result !== undefined) {
+          output += '\n返回值: ' + result;
+        }
+      } catch (e) {
+        output += '执行出错：' + e.message;
+      }
+
+      console.log = originalLog;
+      outputElement.innerText = output || '无输出';
     }
 
     function closeModal() {
